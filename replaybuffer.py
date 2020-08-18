@@ -33,7 +33,10 @@ class ReplayBuffer():
     # Identify a suitable game position.    
     def sample_position(self, game: Game) -> int:
         # Paper: Sample position from game either uniformly or according to some priority. 
-        return random.randint(0,game.length()/8)*8
+        if game.length() > 7:
+            return random.randint(0,game.length()/8)*8
+        else:
+            return 0
 
     # Extract one batch from the stored games
     def sample_batch(self, num_unroll_steps: int, td_steps: int, with_bias = False, with_target = False): 

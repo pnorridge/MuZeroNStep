@@ -156,15 +156,4 @@ class Game(object):
     
 
     ##
-    
-    def make_endgame_target(self, state_index: int, num_unroll_steps: int, td_steps: int, to_play: Player = 0):
-        flat_child_visits = [1./self.action_space_size for _ in range(self.action_space_size)]
-        targets = []
-        value = 100.
-        targets.append((value, value, flat_child_visits, True))
-        for _ in range(num_unroll_steps-1):
-            targets.append((0., 0., flat_child_visits, False))
-        return(targets)
-              
-    def make_endgame_image(self):
-        return np.array([0., 0., 0., 0., 0., 0., 1., 1])
+

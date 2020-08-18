@@ -124,10 +124,6 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
                         network.initial_inference(current_observation)) 
         root.add_exploration_noise()
 
-        #alpha = 0.5 #0. if (network.training_steps()/20000. < 0.5) else 1.
-        #beta = min(network.training_steps()/10000.,1.)
-        beta = np.random.uniform()*network.training_steps()/10000.
-        alpha = 0.5 #0. if beta < 0.5 else 1.
         run_mcts(config, root, game.action_history(), network)
         
         T = config.visit_softmax_temperature(num_moves=len(game.history), training_steps = network.training_steps())
@@ -148,15 +144,14 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
 ##
 
 # Train the network
-def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: ReplayBuffer, experiment):
+def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: ReplayBuffer):
     
     network = storage.latest_network() # recover the latest network to be updated
     
     learning_rate = config.lr_init * config.lr_decay_rate**(network.training_steps()/config.lr_decay_steps)
-    #network.optimiser = tf.keras.optimizers.SGD(learning_rate, 0.9)
+    
     network.optimiser.learning_rate = learning_rate
-    experiment.log_metric("lr", learning_rate, step=network.training_steps())
-
+    
     for i in range(config.training_steps+1):
         
         if i % config.checkpoint_interval == 0:
@@ -168,8 +163,7 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
 
         if i % 100 == 0:
             print((i, l))
-            experiment.log_metric("loss", sum(list(l)), step=network.training_steps())
-
+            
     storage.save_network(network.training_steps(), network)
     
     return i

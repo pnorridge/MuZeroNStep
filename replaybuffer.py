@@ -29,7 +29,7 @@ class ReplayBuffer():
     # Identify a suitable game position.    
     def sample_position(self, game: Game, prediction_steps: int) -> int:
         # Paper: Sample position from game either uniformly or according to some priority. 
-        if game.length() > self.prediction_steps-1:
+        if game.length() > prediction_steps-1:
             return random.randint(0, game.length()/prediction_steps)*prediction_steps
         else:
             return 0

@@ -15,11 +15,6 @@ def visit_softmax_temperature(num_moves, training_steps  = 10000, step_limit: in
   else:
     return 1.0  
 
-def visit_softmax_temperature2(num_moves, training_steps  = 2000):
-  if training_steps < 2000:
-    return 10.0-9.*training_steps/2000.
-  else:
-    return 1.0  
 ##
  
 # Basic configuration object. 
@@ -119,6 +114,8 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
     game = config.new_game()
 
     while not game.terminal() and len(game.history) < config.max_moves:
+
+        # create a new starting point for MCTS
         root = Node(0)
         current_observation = game.make_image(-1)
 
@@ -126,17 +123,21 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
                         network.initial_inference(current_observation)) 
         root.add_exploration_noise()
 
+        # carry out the MCTS search
         run_mcts(config, root, game.action_history(), network)
         
         T = config.visit_softmax_temperature(num_moves=len(game.history), training_steps = network.training_steps())
 
+        # first action from the MCTS with some extra exploration
         action, c1 = root.select_action_with_temperature(T, epsilon = config.epsilon) 
         game.apply(action)
         game.store_search_statistics(root) 
         
+        # continue using actions as predicted by MCTS
+        # (minimise exploration for these)
         ct = 1
         if not game.terminal() and ct < config.prediction_steps:
-            action, c1 = c1.select_action_with_temperature(1, epsilon = 0.0) 
+            action, c1 = c1.select_action_with_temperature(1) 
             game.apply(action)
             game.store_search_statistics(c1)
             ct += 1
@@ -149,9 +150,7 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
 def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: ReplayBuffer):
     
     network = storage.latest_network() # recover the latest network to be updated
-    
     learning_rate = config.lr_init * config.lr_decay_rate**(network.training_steps()/config.lr_decay_steps)
-    
     network.optimiser.learning_rate = learning_rate
     
     for i in range(config.training_steps+1):
@@ -172,12 +171,5 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
 
 ##
 
-# Update the stored games with the values the network would predict now
-# This allows us to take advantage of old games.
-def refresh_values(storage: SharedStorage, replay_buffer: ReplayBuffer):
-    network = storage.latest_network()
-    for game in replay_buffer.buffer:
-        for step in range(game.length()):
-            _, value, _, _ = network.initial_inference(game.make_image(step))    
-            game.root_values[step] = value[0]
+
         

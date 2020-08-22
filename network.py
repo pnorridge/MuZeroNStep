@@ -325,6 +325,7 @@ class SharedStorage(object):
             return Network()
         
     def save_network(self, step: int, network: Network): 
+        # todo: make this a copy rather than reference save
         self._networks[step] = network
 
     

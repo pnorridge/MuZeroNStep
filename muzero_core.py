@@ -64,6 +64,8 @@ class MuZeroConfig(object):
 
         self.visit_softmax_temperature = visit_softmax_temperature_fn
         
+        self.prediction_steps = 4
+
     def new_game(self):
         g = Game(self.discount)
         return g
@@ -132,8 +134,8 @@ def play_game(config: MuZeroConfig, network: Network) -> Game:
         game.apply(action)
         game.store_search_statistics(root) 
         
-        ct = 0 
-        if not game.terminal() and ct < 7:
+        ct = 1
+        if not game.terminal() and ct < config.prediction_steps:
             action, c1 = c1.select_action_with_temperature(1, epsilon = 0.0) 
             game.apply(action)
             game.store_search_statistics(c1)
@@ -157,7 +159,7 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
         if i % config.checkpoint_interval == 0:
             storage.save_network(network.training_steps(), network)
 
-        batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps, with_bias= False, with_target = network.training_steps() > 80000) 
+        batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps, config.prediction_steps) 
 
         l = network.update_weights(batch, config.weight_decay, config.hidden_state_dampen)
 

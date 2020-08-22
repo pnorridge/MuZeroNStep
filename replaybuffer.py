@@ -11,7 +11,7 @@ class ReplayBuffer():
         self.batch_size = 32
         self.buffer = []
         self.game_len = []
-    
+
     def save_game(self, game: Game):
         if len(self.buffer) > self.window_size:
             n = self.game_len.index(min(self.game_len))
@@ -25,27 +25,20 @@ class ReplayBuffer():
     def sample_game(self) -> Game:
         return random.choice(self.buffer)
 
-    def sample_game_with_bias(self) -> Game:
-        bias = np.array(range(1,len(self.buffer)+1))+25
-        return random.choice(self.buffer, p = bias/sum(bias))
-
     
     # Identify a suitable game position.    
-    def sample_position(self, game: Game) -> int:
+    def sample_position(self, game: Game, prediction_steps: int) -> int:
         # Paper: Sample position from game either uniformly or according to some priority. 
-        if game.length() > 7:
-            return random.randint(0,game.length()/8)*8
+        if game.length() > self.prediction_steps-1:
+            return random.randint(0, game.length()/prediction_steps)*prediction_steps
         else:
             return 0
 
     # Extract one batch from the stored games
-    def sample_batch(self, num_unroll_steps: int, td_steps: int, with_bias = False, with_target = False): 
+    def sample_batch(self, num_unroll_steps: int, td_steps: int, prediction_steps: int): 
         
         # select a random selection of games
-        if with_bias:
-            games = [self.sample_game_with_bias() for _ in range(self.batch_size)] 
-        else:    
-            games = [self.sample_game() for _ in range(self.batch_size)] 
+        games = [self.sample_game() for _ in range(self.batch_size)] 
          
         # for each game select a random starting position
         game_pos = [(g, self.sample_position(g)) for g in games] 
@@ -55,10 +48,7 @@ class ReplayBuffer():
         batch = [(g.make_image(i), g.history[i:i + num_unroll_steps],
                  g.make_target(i, num_unroll_steps, td_steps, g.to_play())) 
                 for (g, i) in game_pos]
-        if with_target:
-            (g,i) = game_pos[-1]
-            batch.append((g.make_endgame_image(), g.history[i:i + num_unroll_steps],
-                          g.make_endgame_target(i, num_unroll_steps, td_steps, g.to_play()) ))
+
             
         return batch
 

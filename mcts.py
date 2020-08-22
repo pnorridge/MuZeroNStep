@@ -90,6 +90,7 @@ class Node(object):
 
     # Select an action based on the number of recorded visits to the child nodes 
     # - used for the final decision
+    # Added epsilon for cases were more exploration needs to be encouraged.
     def select_action_with_temperature(self, T: float, epsilon: float = 0.0):
         
         visit_counts = [(child.visit_count, action, child) for action, child in self.children.items()]

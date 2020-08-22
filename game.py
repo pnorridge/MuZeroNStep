@@ -50,15 +50,8 @@ class Game(object):
     # for cartpole, we just provide the state as-is (normalised)
     def make_image(self, state_index: int): 
         
-        #return gameStateMinMax.normalize(self.recorded_states[state_index])
+        return gameStateMinMax.normalize(self.recorded_states[state_index])
         
-        if len(self.recorded_states) > 1:
-            return np.append(gameStateMinMax.normalize(self.recorded_states[state_index]),
-                             gameStateMinMax.normalize(self.recorded_states[state_index-1]))
-        else:
-            return np.append(gameStateMinMax.normalize(self.recorded_states[state_index]),
-                             gameStateMinMax.normalize(self.recorded_states[state_index]))
-
     # apply the action to the environment and record the results (reward and new state)
     def apply(self, action: Action):
 
@@ -113,23 +106,18 @@ class Game(object):
             # if we are off the end of the game then return zero
             if bootstrap_index < len(self.root_values):
                 value = self.root_values[bootstrap_index][0] * self.discount**td_steps 
-                #value = [self.root_values[bootstrap_index][i][0] * d**td_steps for i, d in enumerate(self.discount)]
             else:
                 value = 0.
-                #value = [0. for _ in range(len(self.discount))]
 
             # add up all the rewards between now and the td_steps position, with discounting
 
             for i, reward in enumerate(self.rewards[current_index:bootstrap_index]): 
-                #for k, d in enumerate(self.discount):
-                #    value[k] += reward * d**i 
+
                 value += reward * self.discount**i 
 
             # Paper: For simplicity the network always predicts the most recently received 
             # reward, even for the initial representation network where we already 
             # know this reward.
-
-            # see also https://stackoverflow.com/questions/60234530/is-the-reward-value-in-muzeros-pseudocode-misaligned
 
             if current_index > state_index and current_index <= len(self.rewards):
                 last_reward = self.rewards[current_index - 1] 

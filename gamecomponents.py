@@ -46,8 +46,6 @@ class Policy(object):
     
     def as_probabilities(self):
   
-        # TODO
-        # during training, got an overflow error here!!
         mina = statistics.mean(self.content)
         tmp = [math.exp(a-mina) for a in self.content]
         policy_sum = sum(tmp)

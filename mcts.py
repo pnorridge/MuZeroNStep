@@ -52,10 +52,11 @@ class Node(object):
 
         # the policy logits from the network act as a prior to enable the 
         # MCTS to focus on likely actions.
-        # However, for the 2 actions of cartpole this is unnecessary.
+        # However, for the 2 actions of cartpole this is not completely 
+        # necessary.
         for action, p in network_output.policy_logits.as_probabilities():
             self.children[action] = Node(p)
-            #self.children[action] = Node(0.5)
+  
         
     # alter the prior to aid exploration    
     def add_exploration_noise(self):

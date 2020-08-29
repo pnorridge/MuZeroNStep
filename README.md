@@ -10,6 +10,6 @@ Basic code follows the psuedocode from 'Mastering Atari, Go, Chess and Shogi by 
  
 Some example results with CartpoleV1 (total reward for each game run during training)
 
-![MuZeroNStep results](/img/results1.jpg)
+![MuZeroNStep results](img/results1.jpeg)
 
 Obviously not an entirely stable solution, but not bad considering the task we are asking it to do.

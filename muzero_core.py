@@ -158,7 +158,7 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
         if i % config.checkpoint_interval == 0:
             storage.save_network(network.training_steps(), network)
 
-        batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps, config.prediction_steps) 
+        batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps, config.prediction_interval) 
 
         l = network.update_weights(batch, config.weight_decay, config.hidden_state_dampen)
 

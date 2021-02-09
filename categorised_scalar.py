@@ -7,7 +7,7 @@ basis = tf.transpose([tf.cast(tf.range(offset,offset+N),tf.float32)])
 
 def normalise_scalars(x: tf.Tensor, eps: float = 0.01):
     #return tf.sign(x)*(tf.sqrt(tf.abs(x)+1) - 1 + eps*x)
-    return tf.sign(x)*tf.sqrt(tf.abs(x)+1) - 1 
+    return tf.sign(x)*(tf.sqrt(tf.abs(x)+1) - 1)
 
 def inverse_normalisation(x: tf.Tensor, eps: float = 0.01):
     return tf.sign(x)*(tf.pow(tf.abs(x+1),2.) - 1)
